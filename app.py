@@ -2,29 +2,24 @@
 
 import streamlit as st
 import pandas as pd
-from pathlib import Path
-import json
+from aimarkets.fetch import load_snapshot
 
 st.set_page_config(page_title="AI Markets Dashboard", page_icon="🤖", layout="wide")
 
 # Load data
-SNAPSHOT = Path(__file__).parent / "data" / "snapshot.json"
-
 @st.cache_data
 def load_markets():
-    if SNAPSHOT.exists():
-        return json.loads(SNAPSHOT.read_text())
-    return []
+    return [market.model_dump() for market in load_snapshot()]
 
 markets = load_markets()
 
 # Header
 st.title("🤖 AI Prediction Markets Dashboard")
-st.caption("Live tracking of AI model releases, regulation, capability milestones, and corporate events")
+st.caption("Snapshot of AI model releases, regulation, capability milestones, and corporate events")
 st.markdown("> ⚠️ *Data from cached snapshot. Not financial advice — markets update in real-time.*")
 
 if not markets:
-    st.warning("No market data found. Add data/snapshot.json or configure API keys in .env")
+    st.warning("No market data found. Add data/snapshot.json.")
     st.stop()
 
 df = pd.DataFrame(markets)
@@ -38,7 +33,10 @@ ascending = sort_by == "close_date"
 
 # Filter and sort
 filtered = df[df["category"].isin(selected_cats)]
-filtered = filtered.sort_values(sort_by, ascending=ascending)
+if sort_by == "close_date":
+    filtered = filtered.copy()
+    filtered["close_date"] = filtered["close_date"].replace("", pd.NA)
+filtered = filtered.sort_values(sort_by, ascending=ascending, na_position="last")
 
 # Category labels
 CAT_LABELS = {

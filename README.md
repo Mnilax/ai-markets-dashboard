@@ -31,23 +31,15 @@ streamlit run app.py
 
 The dashboard opens at `http://localhost:8501` with data from `data/snapshot.json`.
 
-### Live mode (optional)
-
-```bash
-cp .env.example .env
-# Add your Kalshi / Polymarket API keys to .env
-streamlit run app.py
-```
-
-With API keys configured, the dashboard fetches live market data on each refresh.
+The current app reads the bundled snapshot only. API keys in `.env` do not enable live fetching. Restart the app or clear Streamlit's data cache after replacing the snapshot.
 
 ## How It Works
 
-1. **Fetch** — pulls active markets from Kalshi REST API and Polymarket CLOB API via `httpx`
+1. **Load** — reads and validates the UTF-8 market snapshot
 2. **Curate** — categorizes markets by keyword rules (model release, regulation, capability, corporate)
 3. **Display** — Streamlit renders filterable, sortable market cards with probability highlights
 
-Without API keys, the app loads `data/snapshot.json` — a pre-fetched dataset committed to the repo so the dashboard is always demoable.
+The app loads `data/snapshot.json`, which is also included in the installed wheel so the Python snapshot loader works outside the checkout. The committed data is demo data and can be stale.
 
 ## Architecture
 
@@ -55,13 +47,14 @@ Without API keys, the app loads `data/snapshot.json` — a pre-fetched dataset c
 app.py                     # Streamlit entry point
 data/snapshot.json         # Pre-fetched market snapshot for offline demo
 src/aimarkets/
-├── fetch.py               # Kalshi + Polymarket API clients
+├── fetch.py               # Snapshot loading and saving
 ├── curate.py              # Category classification + sorting
 └── models.py              # Market data models
 ```
 
 ## Roadmap
 
+- [ ] Live market fetching
 - [ ] Auto-refresh with configurable interval
 - [ ] Historical price charts per market
 - [ ] Alerts for large probability moves

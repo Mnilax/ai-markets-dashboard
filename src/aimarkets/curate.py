@@ -1,6 +1,8 @@
 """Curate and categorize AI markets."""
 from __future__ import annotations
+
 import re
+
 from aimarkets.models import AIMarket
 
 CATEGORY_PATTERNS = {
@@ -14,7 +16,7 @@ def categorize(question: str) -> str:
     """Categorize a market question."""
     q_lower = question.lower()
     for cat, pattern in CATEGORY_PATTERNS.items():
-        if re.search(pattern, q_lower):
+        if re.search(r"\b(?:" + pattern + r")\b", q_lower):
             return cat
     return "other"
 
@@ -31,5 +33,5 @@ def sort_markets(markets: list[AIMarket], by: str = "probability") -> list[AIMar
     if by == "volume":
         return sorted(markets, key=lambda m: m.volume, reverse=True)
     elif by == "close_date":
-        return sorted(markets, key=lambda m: m.close_date)
+        return sorted(markets, key=lambda m: (not m.close_date, m.close_date))
     return sorted(markets, key=lambda m: m.yes_price, reverse=True)
